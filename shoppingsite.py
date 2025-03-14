@@ -22,10 +22,6 @@ app.secret_key = 'this-should-be-something-unguessable'
 # error.
 app.jinja_env.undefined = jinja2.StrictUndefined
 
-# This configuration option makes the Flask interactive debugger
-# more useful (you should remove this line in production though)
-app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = True
-
 
 @app.route("/")
 def index():
