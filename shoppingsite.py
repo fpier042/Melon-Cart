@@ -14,12 +14,14 @@ import melons
 app = Flask(__name__)
 
 # A secret key is needed to use Flask sessioning features
+
 app.secret_key = 'this-should-be-something-unguessable'
 
 # Normally, if you refer to an undefined variable in a Jinja template,
 # Jinja silently ignores this. This makes debugging difficult, so we'll
 # set an attribute of the Jinja environment that says to make this an
 # error.
+
 app.jinja_env.undefined = jinja2.StrictUndefined
 
 
@@ -59,54 +61,69 @@ def add_to_cart(melon_id):
     When a melon is added to the cart, redirect browser to the shopping cart
     page and display a confirmation message: 'Melon successfully added to
     cart'."""
-    
-    if 'cart' not in session:
-        session['cart'] = {}
+
+    # Check if we have a cart in the session and if not, add one
+    # Also, bind the cart to the name 'cart' for easy reference below
     if 'cart' in session:
-        if melon_id in session['cart']:
-            session['cart'][melon_id] += 1
-        else:
-            session ['cart'][melon_id] = 1
-    
-    
-    
-    # TODO: Finish shopping cart functionality
+        cart = session['cart']
+    else:
+        cart = session['cart'] = {}
 
-    # The logic here should be something like:
-    #
-    # - check if a "cart" exists in the session, and create one (an empty
-    #   dictionary keyed to the string "cart") if not
-    # - check if the desired melon id is the cart, and if not, put it in
-    # - increment the count for that melon id by 1
-    # - flash a success message
-    # - redirect the user to the cart page
+    # We could also do this with setdefault:
+    # cart = session.setdefault("cart", {})
 
-    return "Oops! This needs to be implemented!"
+    # Add melon to cart - either increment the count (if melon already in cart)
+    # or add to cart with a count of 1
+    cart[melon_id] = cart.get(melon_id, 0) + 1
+
+    # Print cart to the terminal for testing purposes
+    print("cart:")
+    print(cart)
+
+    # Show user success message on next page load
+    flash("Melon successfully added to cart.")
+
+    # Redirect to shopping cart page
+    return redirect("/cart")
 
 
 @app.route("/cart")
 def show_shopping_cart():
     """Display content of shopping cart."""
 
-    # TODO: Display the contents of the shopping cart.
+    # Keep track of the total cost of the order
+    order_total = 0
 
-    # The logic here will be something like:
-    #
-    # - get the cart dictionary from the session
-    # - create a list to hold melon objects and a variable to hold the total
-    #   cost of the order
-    # - loop over the cart dictionary, and for each melon id:
-    #    - get the corresponding Melon object
-    #    - compute the total cost for that type of melon
-    #    - add this to the order total
-    #    - add quantity and total cost as attributes on the Melon object
-    #    - add the Melon object to the list created above
-    # - pass the total order cost and the list of Melon objects to the template
-    #
-    # Make sure your function can also handle the case wherein no cart has
-    # been added to the session
+    # Create a list to hold Melon objects corresponding to the melon_id's in
+    # the cart
+    cart_melons = []
 
-    return render_template("cart.html")
+    # Get the cart dictionary out of the session (or an empty one if none
+    # exists yet)
+    cart = session.get("cart", {})
+
+    # Loop over the cart dictionary
+    for melon_id, quantity in cart.items():
+        # Retrieve the Melon object corresponding to this id
+        melon = melons.get_by_id(melon_id)
+
+        # Calculate the total cost for this type of melon and add it to the
+        # overall total for the order
+        total_cost = quantity * melon.price
+        order_total += total_cost
+
+        # Add the quantity and total cost as attributes on the Melon object
+        melon.quantity = quantity
+        melon.total_cost = total_cost
+
+        # Add the Melon object to our list
+        cart_melons.append(melon)
+
+    # Pass the list of Melon objects and the order total to our cart template
+
+    return render_template("cart.html",
+                           cart=cart_melons,
+                           order_total=order_total)
 
 
 @app.route("/login", methods=["GET"])
@@ -153,4 +170,4 @@ def checkout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=6060)
+    app.run(debug=True, host='0.0.0.0', port=6060)
