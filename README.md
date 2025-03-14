@@ -1,1 +1,1 @@
-# Melon-Cart
+This repository contained a partially functioning version of the Ubermelon web app. While it was reasonably well constructed, there were a few bugs and unimplemented features. The goal of the exercise-- which I began in conjunction with another student programmer, but ultimately completed myself-- was to repair the app, such that all of the features were fully implemented. Overall, it demonsrated to me some of the subtleties of working within a web framework.
