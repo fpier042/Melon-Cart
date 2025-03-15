@@ -6,10 +6,11 @@ put melons in a shopping cart.
 Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 """
 
-from flask import Flask, render_template, redirect, flash, session
+from flask import Flask, render_template, redirect, flash, session, request
 import jinja2
 
 import melons
+import customers
 
 app = Flask(__name__)
 
@@ -77,8 +78,7 @@ def add_to_cart(melon_id):
     cart[melon_id] = cart.get(melon_id, 0) + 1
 
     # Print cart to the terminal for testing purposes
-    print("cart:")
-    print(cart)
+    print("cart:", cart)
 
     # Show user success message on next page load
     flash("Melon successfully added to cart.")
@@ -125,6 +125,23 @@ def show_shopping_cart():
                            order_total=order_total)
 
 
+@app.route("/remove_from_cart/<melon_id>")
+def remove_from_cart(melon_id):
+    """Remove a melon from the cart or decrease its quantity, then redirect to cart page."""
+    if 'cart' in session:
+        cart = session['cart']
+        if melon_id in cart:
+            cart[melon_id] -= 1  # Decrease quantity
+            if cart[melon_id] <= 0:
+                del cart[melon_id]  # Remove if quantity is 0 or less
+            flash("Melon removed from cart.")
+        else:
+            flash("That melon is not in your cart.")
+    else:
+        flash("Your cart is empty.")
+    print("cart:", session.get("cart", {}))
+    return redirect("/cart")
+
 @app.route("/login", methods=["GET"])
 def show_login():
     """Show login form."""
@@ -140,22 +157,24 @@ def process_login():
     dictionary, look up the user, and store them in the session.
     """
 
-    # TODO: Need to implement this!
+    email = request.form.get('email')
+    password = request.form.get('password')
+    user = customers.get_by_email(email)
+    if not user:
+        flash("No such email address.")
+        return redirect('/login')
+    if user.password != password:
+        flash("Incorrect password.")
+        return redirect("/login")
+    session["logged_in_customer_email"] = user.email
+    flash("Logged in.")
+    return redirect("/melons")
 
-    # The logic here should be something like:
-    #
-    # - get user-provided name and password from request.form
-    # - use customers.get_by_email() to retrieve corresponding Customer
-    #   object (if any)
-    # - if a Customer with that email was found, check the provided password
-    #   against the stored one
-    # - if they match, store the user's email in the session, flash a success
-    #   message and redirect the user to the "/melons" route
-    # - if they don't, flash a failure message and redirect back to "/login"
-    # - do the same if a Customer with that email doesn't exist
-
-    return "Oops! This needs to be implemented"
-
+@app.route("/logout")
+def process_logout():
+    del session["logged_in_customer_email"]
+    flash("Logged out.")
+    return redirect("/melons")
 
 @app.route("/checkout")
 def checkout():

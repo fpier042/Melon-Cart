@@ -15,6 +15,7 @@
                 <th>Quantity</th>
                 <th>Price</th>
                 <th>Total</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
@@ -24,13 +25,15 @@
                 <td>{{ melon.quantity }}</td>
                 <td>${{ "%0.2f" | format(melon.price) }}</td>
                 <td>${{ "%0.2f" | format(melon.total_cost) }}</td>
+                <td><a href="/remove_from_cart/{{ melon.melon_id }}" class="btn btn-sm btn-danger">Remove</a></td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
         <h3>Total: ${{ "%0.2f" | format(order_total) }}</h3>
+        <a href="/melons" class="btn btn-large btn-secondary">Continue Shopping</a>
         <a href="/checkout" class="btn btn-large btn-primary">Check Out</a>
     {% else %}
-        <p>Your cart is empty.</p>
+        <p>Your cart is empty. <a href="/melons">Browse melons</a>.</p>
     {% endif %}
 {% endblock %}
