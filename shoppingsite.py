@@ -120,7 +120,6 @@ def show_shopping_cart():
         cart_melons.append(melon)
 
     # Pass the list of Melon objects and the order total to our cart template
-
     return render_template("cart.html",
                            cart=cart_melons,
                            order_total=order_total)
